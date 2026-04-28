@@ -3,18 +3,13 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-export default function Home() {
+export default function DashboardPage() {
   const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-
-    if (token) {
-      router.push("/dashboard");
-    } else {
-      router.push("/login");
-    }
+    if (!token) router.push("/login");
   }, []);
 
-  return null;
+  return <h1>Bienvenido</h1>;
 }
