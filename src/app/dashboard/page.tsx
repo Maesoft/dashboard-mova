@@ -8,8 +8,27 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) router.push("/login");
-  }, []);
 
-  return <h1>Bienvenido</h1>;
+    let user = null;
+
+    try {
+      const userString = localStorage.getItem("user");
+
+      if (userString && userString !== "undefined") {
+        user = JSON.parse(userString);
+      }
+    } catch (error) {
+      console.error("Error parseando user:", error);
+      user = null;
+    }
+
+    // 🔥 validación completa
+    if (!user || !user.isActive || user.role !== "trainer") {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      router.push("/login");
+    }
+  }, [router]);
+
+  return <h1 className="text-white text-xl">Bienvenido</h1>;
 }
