@@ -19,7 +19,7 @@ export default function DashboardLayout({
   const linkClass = (path: string) =>
     `px-3 py-2 rounded-lg transition ${
       pathname === path
-        ? "bg-primary text-black font-semibold"
+        ? "bg-primary text-white font-semibold"
         : "text-gray-400 hover:text-white hover:bg-darkSecondary"
     }`;
 
@@ -42,6 +42,9 @@ export default function DashboardLayout({
             </Link>
             <Link href="/dashboard/users" className={linkClass("/dashboard/users")}>
               Usuarios
+            </Link>
+            <Link href="/dashboard/exercises" className={linkClass("/dashboard/exercises")}>
+              Ejercicios
             </Link>
             <Link href="/dashboard/routines" className={linkClass("/dashboard/routines")}>
               Rutinas
