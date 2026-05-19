@@ -17,36 +17,56 @@ export default function DashboardLayout({
   };
 
   const linkClass = (path: string) =>
-    `px-3 py-2 rounded-lg transition ${
+    `px-4 py-3 rounded-[1.25rem] transition-all duration-200 font-medium ${
       pathname === path
-        ? "bg-primary text-white font-semibold"
-        : "text-gray-400 hover:text-white hover:bg-darkSecondary"
+        ? "bg-primary text-black shadow-[0_0_20px_rgba(109,190,69,0.35)]"
+        : "text-muted hover:text-text hover:bg-tertiary hover:border hover:border-primary/40"
     }`;
 
   return (
-    <div className="flex h-screen bg-dark text-white">
+    <div className="flex h-screen bg-secondary text-text">
       {/* Sidebar */}
-      <aside className="w-64 bg-darkSecondary border-r border-gray-800 p-5 flex flex-col justify-between">
-        
+      <aside className="w-72 bg-tertiary border-r border-border p-6 flex flex-col justify-between">
         {/* Top */}
         <div>
           {/* Marca */}
-          <h2 className="text-2xl font-bold text-primary mb-8 tracking-wide">
-            MOVA
-          </h2>
+          <div className="mb-10">
+            <h2 className="text-4xl font-black text-primary tracking-widest">
+              MOVA
+            </h2>
+
+            <p className="text-muted text-sm mt-1">
+              Fitness Platform
+            </p>
+          </div>
 
           {/* Navegación */}
-          <nav className="flex flex-col gap-2">
-            <Link href="/dashboard" className={linkClass("/dashboard")}>
+          <nav className="flex flex-col gap-3">
+            <Link
+              href="/dashboard"
+              className={linkClass("/dashboard")}
+            >
               Dashboard
             </Link>
-            <Link href="/dashboard/users" className={linkClass("/dashboard/users")}>
+
+            <Link
+              href="/dashboard/users"
+              className={linkClass("/dashboard/users")}
+            >
               Usuarios
             </Link>
-            <Link href="/dashboard/exercises" className={linkClass("/dashboard/exercises")}>
+
+            <Link
+              href="/dashboard/exercises"
+              className={linkClass("/dashboard/exercises")}
+            >
               Ejercicios
             </Link>
-            <Link href="/dashboard/routines" className={linkClass("/dashboard/routines")}>
+
+            <Link
+              href="/dashboard/routines"
+              className={linkClass("/dashboard/routines")}
+            >
               Rutinas
             </Link>
           </nav>
@@ -55,29 +75,16 @@ export default function DashboardLayout({
         {/* Bottom */}
         <button
           onClick={logout}
-          className="mt-10 bg-red-500/90 hover:bg-red-500 text-white p-2 rounded-lg transition"
+          className="mt-10 bg-red-500/90 hover:bg-red-500 text-white p-3 rounded-[1.25rem] transition-all font-semibold"
         >
           Cerrar sesión
         </button>
       </aside>
 
       {/* Contenido */}
-      <main className="flex-1 p-6 overflow-auto bg-dark">
-        
-        {/* Topbar */}
-        <div className="mb-6 flex justify-between items-center">
-          <h1 className="text-xl font-semibold text-gray-200">
-            Panel de control
-          </h1>
-
-          <div className="text-sm text-gray-400">
-            Entrenador
-          </div>
-        </div>
-
-        {/* Contenido dinámico */}
-        <div className="bg-darkSecondary p-6 rounded-2xl shadow-md border border-gray-800">
-          {children}
+      <main className="flex-1 overflow-auto bg-secondary">
+        <div className="p-8">
+            {children}
         </div>
       </main>
     </div>

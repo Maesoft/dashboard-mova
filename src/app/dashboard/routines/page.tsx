@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   DndContext,
+  DragOverlay,
   useDraggable,
   useDroppable,
 } from "@dnd-kit/core";
@@ -15,6 +16,7 @@ export default function RoutinesPage() {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
 
   const [routineName, setRoutineName] = useState("");
+  const [activeExercise, setActiveExercise] = useState<any>(null);
 
   const [days, setDays] = useState<any[]>([
     {
@@ -35,6 +37,7 @@ export default function RoutinesPage() {
     const res = await fetch(url, {
       headers: { Authorization: `Bearer ${token}` },
     });
+
     return res.json();
   };
 
@@ -81,13 +84,11 @@ export default function RoutinesPage() {
     );
   };
 
-  // ✏️ editar valores
-  const updateExerciseField = (
+  const updateExerciseInstructions = (
     dayIndex: number,
     blockId: string,
     exerciseIndex: number,
-    field: "sets" | "reps" | "restSeconds",
-    value: number
+    value: string
   ) => {
     setDays((prev) =>
       prev.map((day, dIdx) => {
@@ -105,7 +106,7 @@ export default function RoutinesPage() {
 
                 return {
                   ...ex,
-                  [field]: value,
+                  instructions: value,
                 };
               }),
             };
@@ -145,6 +146,7 @@ export default function RoutinesPage() {
     setDays((prev) =>
       prev.map((day, i) => {
         if (i !== dayIndex) return day;
+
         if (day.blocks.length === 1) return day;
 
         return {
@@ -170,6 +172,7 @@ export default function RoutinesPage() {
 
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
+
     if (!over) return;
 
     const exercise = exercises.find((e) => e.id === active.id);
@@ -185,13 +188,12 @@ export default function RoutinesPage() {
                 ...block.exercises,
                 {
                   exercise,
-                  sets: 3,
-                  reps: 10,
-                  restSeconds: 60,
+                  instructions: "3x10 - 60s",
                 },
               ],
             };
           }
+
           return block;
         }),
       }))
@@ -199,30 +201,31 @@ export default function RoutinesPage() {
   };
 
   const saveRoutine = async () => {
-    const blocks: any[] = [];
-
-    days.forEach((day) => {
-      day.blocks.forEach((block: any, blockIndex: number) => {
-        blocks.push({
-          day: day.day,
-          order: blockIndex + 1,
-          exercises: block.exercises.map((ex: any, i: number) => ({
-            exerciseId: ex.exercise.id,
-            sets: ex.sets,
-            reps: ex.reps,
-            restSeconds: ex.restSeconds,
-            order: i + 1,
-          })),
-        });
-      });
-    });
+    if (!routineName.trim()) {
+      alert("Debes ingresar un nombre para la rutina");
+      return;
+    }
 
     const payload = {
       name: routineName,
-      blocks,
+
+      days: days.map((day: any, dayIndex: number) => ({
+        dayNumber: dayIndex + 1,
+
+        blocks: day.blocks.map((block: any, blockIndex: number) => ({
+          name: `Bloque ${blockIndex + 1}`,
+          order: blockIndex + 1,
+
+          exercises: block.exercises.map((ex: any, i: number) => ({
+            exerciseId: ex.exercise.id,
+            instructions: ex.instructions,
+            order: i + 1,
+          })),
+        })),
+      })),
     };
 
-    await fetch(`${API}/routines`, {
+    const res = await fetch(`${API}/routines`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -231,25 +234,48 @@ export default function RoutinesPage() {
       body: JSON.stringify(payload),
     });
 
+    if (!res.ok) {
+      alert("Error guardando rutina");
+      return;
+    }
+
     alert("Rutina guardada 🔥");
   };
 
   return (
-    <DndContext onDragEnd={handleDragEnd}>
-      <div className="p-6 space-y-6">
-        <div className="flex justify-between">
-          <h1 className="text-2xl font-bold">Crear rutina</h1>
+    <DndContext
+      onDragStart={(event) => {
+        const ex = exercises.find((e) => e.id === event.active.id);
+        setActiveExercise(ex);
+      }}
+      onDragEnd={(event) => {
+        handleDragEnd(event);
+        setActiveExercise(null);
+      }}
+    >
+      <div className="min-h-screen bg-secondary text-text p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-4xl font-black tracking-wide">
+              MOVA
+            </h1>
 
-          <div className="flex gap-2">
+            <p className="text-muted text-sm">
+              Routine Builder
+            </p>
+          </div>
+
+          <div className="flex gap-3">
             <input
               placeholder="Nombre rutina"
-              className="border px-3 py-2"
+              className="bg-surface border border-primary px-4 py-2 rounded-[1.25rem] outline-none focus:ring-2 focus:ring-primary focus:border-primary text-white"
               value={routineName}
               onChange={(e) => setRoutineName(e.target.value)}
             />
+
             <button
               onClick={saveRoutine}
-              className="bg-primary text-white px-4"
+              className="bg-primary text-black px-6 py-2 rounded-[1.25rem] font-bold hover:brightness-110 transition-all shadow-[0_0_20px_rgba(109,190,69,0.35)]"
             >
               Guardar
             </button>
@@ -259,7 +285,11 @@ export default function RoutinesPage() {
         <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => setSelectedCategory(null)}
-            className="border px-3 py-1"
+            className={`px-4 py-2 rounded-[1.25rem] border transition-all ${
+              selectedCategory === null
+                ? "bg-primary border-primary text-black font-bold shadow-[0_0_20px_rgba(109,190,69,0.35)]"
+                : "bg-tertiary border-border hover:border-primary"
+            }`}
           >
             Todas
           </button>
@@ -268,14 +298,18 @@ export default function RoutinesPage() {
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className="border px-3 py-1"
+              className={`px-4 py-2 rounded-[1.25rem] border transition-all ${
+                selectedCategory === cat.id
+                  ? "bg-primary border-primary text-black font-bold shadow-[0_0_20px_rgba(109,190,69,0.35)]"
+                  : "bg-tertiary border-border hover:border-primary"
+              }`}
             >
               {cat.name}
             </button>
           ))}
         </div>
 
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-4 gap-4">
           {filteredExercises.map((ex) => (
             <DraggableExercise key={ex.id} exercise={ex} />
           ))}
@@ -283,12 +317,18 @@ export default function RoutinesPage() {
 
         <div className="grid grid-cols-3 gap-8">
           {days.map((day, dayIndex) => (
-            <div key={dayIndex} className="border p-4">
-              <div className="flex justify-between mb-4">
-                <h2 className="text-xl font-bold">Día {day.day}</h2>
+            <div
+              key={dayIndex}
+              className="bg-gradient-to-br from-[#111] to-[#1A1A1A] border border-border rounded-[1.75rem] p-5 shadow-2xl"
+            >
+              <div className="flex justify-between items-center mb-5">
+                <h2 className="text-2xl font-black">
+                  Día {day.day}
+                </h2>
+
                 <button
                   onClick={() => removeDay(dayIndex)}
-                  className="text-red-500"
+                  className="text-red-500 hover:scale-110 transition"
                 >
                   ❌
                 </button>
@@ -303,14 +343,16 @@ export default function RoutinesPage() {
                     dayIndex={dayIndex}
                     removeBlock={removeBlock}
                     removeExercise={removeExercise}
-                    updateExerciseField={updateExerciseField}
+                    updateExerciseInstructions={
+                      updateExerciseInstructions
+                    }
                   />
                 ))}
               </div>
 
               <button
                 onClick={() => addBlock(dayIndex)}
-                className="mt-4 border px-3 py-1"
+                className="mt-4 w-full bg-tertiary border border-border hover:border-primary hover:shadow-[0_0_20px_rgba(109,190,69,0.35)] py-3 rounded-[1.25rem] transition-all font-semibold"
               >
                 ➕ Agregar bloque
               </button>
@@ -318,10 +360,21 @@ export default function RoutinesPage() {
           ))}
         </div>
 
-        <button onClick={addDay} className="border px-4 py-2">
+        <button
+          onClick={addDay}
+          className="bg-primary text-black px-6 py-3 rounded-[1.25rem] font-black hover:brightness-110 transition-all shadow-[0_0_20px_rgba(109,190,69,0.35)]"
+        >
           ➕ Agregar día
         </button>
       </div>
+
+      <DragOverlay>
+        {activeExercise ? (
+          <div className="bg-primary text-black px-5 py-3 rounded-[1.25rem] shadow-[0_0_20px_rgba(109,190,69,0.35)]Lg border border-white/10 font-bold scale-105">
+            {activeExercise.name}
+          </div>
+        ) : null}
+      </DragOverlay>
     </DndContext>
   );
 }
@@ -336,9 +389,9 @@ function DraggableExercise({ exercise }: any) {
       ref={setNodeRef}
       {...listeners}
       {...attributes}
-      className="border p-2 cursor-grab bg-gray-600"
+      className="bg-gradient-to-br from-[#111] to-[#1A1A1A] border border-border hover:border-primary hover:shadow-[0_0_20px_rgba(109,190,69,0.35)] p-4 rounded-[1.25rem] cursor-grab transition-all duration-200"
     >
-      {exercise.name}
+      <p className="font-semibold">{exercise.name}</p>
     </div>
   );
 }
@@ -349,7 +402,7 @@ function DroppableBlock({
   dayIndex,
   removeBlock,
   removeExercise,
-  updateExerciseField,
+  updateExerciseInstructions,
 }: any) {
   const { setNodeRef, isOver } = useDroppable({
     id: block.id,
@@ -358,83 +411,65 @@ function DroppableBlock({
   return (
     <div
       ref={setNodeRef}
-      className={`border p-4 ${isOver ? "bg-green-100" : ""}`}
+      className={`border rounded-[1.25rem] p-4 transition-all duration-200 ${
+        isOver
+          ? "bg-primary/10 border-primary shadow-[0_0_20px_rgba(109,190,69,0.35)]"
+          : "bg-tertiary border-border"
+      }`}
     >
-      <div className="flex justify-between mb-2">
-        <h3 className="font-bold">Bloque {index + 1}</h3>
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="font-bold text-lg">
+          Bloque {index + 1}
+        </h3>
 
         <button
           onClick={() => removeBlock(dayIndex, block.id)}
-          className="text-red-500"
+          className="text-red-500 hover:scale-110 transition"
         >
           ❌
         </button>
       </div>
 
+      {block.exercises.length === 0 && (
+        <div className="border-2 border-dashed border-border rounded-[1.25rem] p-6 text-center text-muted">
+          Arrastra ejercicios aquí
+        </div>
+      )}
+
       {block.exercises.map((ex: any, i: number) => (
-        <div key={i} className="border p-2 mb-2 text-sm space-y-2">
-          <div className="flex justify-between">
-            <span>{ex.exercise.name}</span>
+        <div
+          key={i}
+          className="border border-border bg-secondary rounded-[1.25rem] p-3 mb-3 space-y-3"
+        >
+          <div className="flex justify-between items-center">
+            <span className="font-medium">
+              {ex.exercise.name}
+            </span>
 
             <button
               onClick={() =>
                 removeExercise(dayIndex, block.id, i)
               }
-              className="text-red-500"
+              className="text-red-500 hover:scale-110 transition"
             >
               ❌
             </button>
           </div>
 
-          <div className="flex gap-2">
-            <input
-              type="number"
-              value={ex.sets}
-              onChange={(e) =>
-                updateExerciseField(
-                  dayIndex,
-                  block.id,
-                  i,
-                  "sets",
-                  Number(e.target.value)
-                )
-              }
-              className="border px-2 w-16"
-              placeholder="Sets"
-            />
-
-            <input
-              type="number"
-              value={ex.reps}
-              onChange={(e) =>
-                updateExerciseField(
-                  dayIndex,
-                  block.id,
-                  i,
-                  "reps",
-                  Number(e.target.value)
-                )
-              }
-              className="border px-2 w-16"
-              placeholder="Reps"
-            />
-
-            <input
-              type="number"
-              value={ex.restSeconds}
-              onChange={(e) =>
-                updateExerciseField(
-                  dayIndex,
-                  block.id,
-                  i,
-                  "restSeconds",
-                  Number(e.target.value)
-                )
-              }
-              className="border px-2 w-20"
-              placeholder="Descanso"
-            />
-          </div>
+          <input
+            type="text"
+            value={ex.instructions}
+            onChange={(e) =>
+              updateExerciseInstructions(
+                dayIndex,
+                block.id,
+                i,
+                e.target.value
+              )
+            }
+            className="w-full bg-surface border border-border rounded-[1.25rem] px-3 py-2 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-white"
+            placeholder="Ej: 12-10-8-6 / RIR 1 / 90s"
+          />
         </div>
       ))}
     </div>
