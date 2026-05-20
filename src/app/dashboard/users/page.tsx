@@ -186,27 +186,19 @@ export default function UsersPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-3xl font-black text-white">Usuarios</h2>
-
-          <p className="text-muted text-sm">Gestión de alumnos y rutinas</p>
-        </div>
-      </div>
-
       <div className="overflow-x-auto rounded-3xl border border-border bg-tertiary">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="text-muted text-sm border-b border-border bg-secondary">
-              <th className="p-4">Email</th>
+            <tr className="text-text text-sm border-b border-border bg-tertiary">
+              <th className="p-4">EMAIL</th>
 
-              <th className="p-4">Estado</th>
+              <th className="p-4">ESTADO</th>
 
-              <th className="p-4">Rutina</th>
+              <th className="p-4">RUTINA</th>
 
-              <th className="p-4">Progreso</th>
+              <th className="p-4">PROGRESO</th>
 
-              <th className="p-4">Acciones</th>
+              <th className="p-4">ACCIONES</th>
             </tr>
           </thead>
 
@@ -219,6 +211,7 @@ export default function UsersPage() {
                   border-border
                   hover:bg-secondary
                   transition-all
+                  bg-black
                 "
               >
                 {/* Email */}
@@ -236,7 +229,7 @@ export default function UsersPage() {
                       ${
                         user.isActive
                           ? "bg-primary/20 text-primary border border-primary/30"
-                          : "bg-red-500/10 text-red-400 border border-red-500/20"
+                          : "bg-black text-muted border border-muted"
                       }
                     `}
                   >
@@ -254,8 +247,8 @@ export default function UsersPage() {
                     className="
                       bg-secondary
                       border
-                      border-border
-                      text-white
+                      border-primary
+                      text-text
                       px-4
                       py-2
                       rounded-2xl
@@ -311,7 +304,7 @@ export default function UsersPage() {
                       transition-all
                       ${
                         user.isActive
-                          ? "bg-red-500/90 hover:bg-red-500 text-white"
+                          ? "bg-muted hover:bg-gray-600 text-white"
                           : "bg-primary text-black hover:brightness-110 shadow-[0_0_20px_rgba(109,190,69,0.35)]"
                       }
                       disabled:opacity-50

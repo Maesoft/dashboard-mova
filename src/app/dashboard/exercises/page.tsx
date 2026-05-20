@@ -240,7 +240,7 @@ export default function ExercisesPage() {
     : exercises;
 
   return (
-    <div className="min-h-screen bg-secondary text-text p-6 space-y-6">
+    <div className="min-h-screen bg-secondary text-text space-y-6">
       {error && (
         <div
           className="
@@ -256,13 +256,6 @@ export default function ExercisesPage() {
         </div>
       )}
 
-      {/* HEADER */}
-      <div>
-        <h1 className="text-4xl font-black tracking-wide text-white">MOVA</h1>
-
-        <p className="text-muted text-sm">Gestión de ejercicios y categorías</p>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* CATEGORÍAS */}
         <div
@@ -277,11 +270,11 @@ export default function ExercisesPage() {
             shadow-2xl
           "
         >
-          <h2 className="font-black text-2xl text-white mb-5">Categorías</h2>
+          <h2 className="font-black text-2xl text-white mb-5">CATEGORIAS</h2>
 
           <div className="flex gap-2 mb-5">
             <input
-              placeholder="Nueva categoría"
+              placeholder="NUEVA CATEGORIA"
               value={newCategory}
               onChange={(e) => setNewCategory(e.target.value)}
               className="
@@ -313,7 +306,7 @@ export default function ExercisesPage() {
                 shadow-[0_0_20px_rgba(109,190,69,0.35)]
               "
             >
-              Agregar
+              AGREGAR
             </button>
           </div>
 
@@ -337,7 +330,7 @@ export default function ExercisesPage() {
                 }
               `}
             >
-              <span>Todas</span>
+              <span>TODAS</span>
             </button>
 
             {categories.map((cat) => (
@@ -393,12 +386,12 @@ export default function ExercisesPage() {
           "
         >
           <h2 className="font-black text-2xl text-white mb-5">
-            Crear ejercicio
+            CREAR EJERCICIO
           </h2>
 
           <div className="grid gap-4">
             <input
-              placeholder="Nombre"
+              placeholder="NOMBRE"
               value={newExercise.name}
               onChange={(e) =>
                 setNewExercise({
@@ -422,7 +415,7 @@ export default function ExercisesPage() {
             />
 
             <textarea
-              placeholder="Descripción"
+              placeholder="DESCRIPCION"
               value={newExercise.description}
               onChange={(e) =>
                 setNewExercise({
@@ -448,7 +441,7 @@ export default function ExercisesPage() {
             />
 
             <input
-              placeholder="Video URL"
+              placeholder="VIDEO URL"
               value={newExercise.videoUrl}
               onChange={(e) =>
                 setNewExercise({
@@ -486,7 +479,7 @@ export default function ExercisesPage() {
                 w-fit
               "
             >
-              Crear ejercicio
+              CREAR EJERCICIO
             </button>
           </div>
         </div>
@@ -507,10 +500,10 @@ export default function ExercisesPage() {
       >
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="font-black text-2xl text-white">Ejercicios</h2>
+            <h2 className="font-black text-2xl text-white">EJERCICIOS</h2>
 
             <p className="text-muted text-sm">
-              {filteredExercises.length} ejercicios
+              {filteredExercises.length} EJERCICIOS
             </p>
           </div>
         </div>

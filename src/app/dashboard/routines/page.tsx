@@ -253,124 +253,125 @@ export default function RoutinesPage() {
         setActiveExercise(null);
       }}
     >
-      <div className="min-h-screen bg-secondary text-text p-6 space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-4xl font-black tracking-wide">
-              MOVA
-            </h1>
+      <div className="h-screen overflow-hidden bg-secondary text-text flex flex-col">
 
-            <p className="text-muted text-sm">
-              Routine Builder
-            </p>
-          </div>
+        {/* HEADER FIJO */}
+        <div className="flex-shrink-0 p-6 space-y-6 border-b border-border bg-secondary z-50">
 
-          <div className="flex gap-3">
-            <input
-              placeholder="Nombre rutina"
-              className="bg-surface border border-primary px-4 py-2 rounded-[1.25rem] outline-none focus:ring-2 focus:ring-primary focus:border-primary text-white"
-              value={routineName}
-              onChange={(e) => setRoutineName(e.target.value)}
-            />
-
-            <button
-              onClick={saveRoutine}
-              className="bg-primary text-black px-6 py-2 rounded-[1.25rem] font-bold hover:brightness-110 transition-all shadow-[0_0_20px_rgba(109,190,69,0.35)]"
-            >
-              Guardar
-            </button>
-          </div>
-        </div>
-
-        <div className="flex gap-2 flex-wrap">
-          <button
-            onClick={() => setSelectedCategory(null)}
-            className={`px-4 py-2 rounded-[1.25rem] border transition-all ${
-              selectedCategory === null
-                ? "bg-primary border-primary text-black font-bold shadow-[0_0_20px_rgba(109,190,69,0.35)]"
-                : "bg-tertiary border-border hover:border-primary"
-            }`}
-          >
-            Todas
-          </button>
-
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`px-4 py-2 rounded-[1.25rem] border transition-all ${
-                selectedCategory === cat.id
-                  ? "bg-primary border-primary text-black font-bold shadow-[0_0_20px_rgba(109,190,69,0.35)]"
-                  : "bg-tertiary border-border hover:border-primary"
-              }`}
-            >
-              {cat.name}
-            </button>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-4 gap-4">
-          {filteredExercises.map((ex) => (
-            <DraggableExercise key={ex.id} exercise={ex} />
-          ))}
-        </div>
-
-        <div className="grid grid-cols-3 gap-8">
-          {days.map((day, dayIndex) => (
-            <div
-              key={dayIndex}
-              className="bg-gradient-to-br from-[#111] to-[#1A1A1A] border border-border rounded-[1.75rem] p-5 shadow-2xl"
-            >
-              <div className="flex justify-between items-center mb-5">
-                <h2 className="text-2xl font-black">
-                  Día {day.day}
-                </h2>
-
-                <button
-                  onClick={() => removeDay(dayIndex)}
-                  className="text-red-500 hover:scale-110 transition"
-                >
-                  ❌
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                {day.blocks.map((block: any, blockIndex: number) => (
-                  <DroppableBlock
-                    key={block.id}
-                    block={block}
-                    index={blockIndex}
-                    dayIndex={dayIndex}
-                    removeBlock={removeBlock}
-                    removeExercise={removeExercise}
-                    updateExerciseInstructions={
-                      updateExerciseInstructions
-                    }
-                  />
-                ))}
-              </div>
+          <div className="flex justify-end items-center">
+            <div className="flex gap-3">
+              <input
+                placeholder="NOMBRE RUTINA"
+                className="bg-surface border border-primary px-4 py-2 rounded-[1.25rem] outline-none focus:ring-2 focus:ring-primary focus:border-primary text-white"
+                value={routineName}
+                onChange={(e) => setRoutineName(e.target.value)}
+              />
 
               <button
-                onClick={() => addBlock(dayIndex)}
-                className="mt-4 w-full bg-tertiary border border-border hover:border-primary hover:shadow-[0_0_20px_rgba(109,190,69,0.35)] py-3 rounded-[1.25rem] transition-all font-semibold"
+                onClick={saveRoutine}
+                className="bg-primary text-black px-6 py-2 rounded-[1.25rem] font-bold hover:brightness-110 transition-all shadow-[0_0_20px_rgba(109,190,69,0.35)]"
               >
-                ➕ Agregar bloque
+                GUARDAR
               </button>
             </div>
-          ))}
+          </div>
+
+          {/* CATEGORIAS */}
+          <div className="flex gap-2 flex-wrap">
+            <button
+              onClick={() => setSelectedCategory(null)}
+              className={`px-4 py-2 rounded-[1.25rem] border transition-all ${
+                selectedCategory === null
+                  ? "bg-primary border-primary text-black font-bold shadow-[0_0_20px_rgba(109,190,69,0.35)]"
+                  : "bg-tertiary border-border text-text hover:border-primary"
+              }`}
+            >
+              TODAS
+            </button>
+
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`px-4 py-2 rounded-[1.25rem] border transition-all ${
+                  selectedCategory === cat.id
+                    ? "bg-primary border-primary text-black font-bold shadow-[0_0_20px_rgba(109,190,69,0.35)]"
+                    : "bg-tertiary border-border text-text hover:border-primary"
+                }`}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
+
+          {/* EJERCICIOS */}
+          <div className="grid grid-cols-4 gap-4 max-h-[260px] overflow-y-auto pr-2">
+            {filteredExercises.map((ex) => (
+              <DraggableExercise key={ex.id} exercise={ex} />
+            ))}
+          </div>
         </div>
 
-        <button
-          onClick={addDay}
-          className="bg-primary text-black px-6 py-3 rounded-[1.25rem] font-black hover:brightness-110 transition-all shadow-[0_0_20px_rgba(109,190,69,0.35)]"
-        >
-          ➕ Agregar día
-        </button>
+        {/* SCROLL SOLO EN LOS DIAS */}
+        <div className="flex-1 overflow-y-auto p-6">
+
+          <div className="grid grid-cols-3 gap-8">
+            {days.map((day, dayIndex) => (
+              <div
+                key={dayIndex}
+                className="bg-gradient-to-br from-[#111] to-[#1A1A1A] border border-border rounded-[1.75rem] p-5 shadow-2xl"
+              >
+                <div className="flex justify-between items-center mb-5">
+                  <h2 className="text-2xl font-black">
+                    DIA {day.day}
+                  </h2>
+
+                  <button
+                    onClick={() => removeDay(dayIndex)}
+                    className="text-red-500 hover:scale-110 transition"
+                  >
+                    ❌
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {day.blocks.map((block: any, blockIndex: number) => (
+                    <DroppableBlock
+                      key={block.id}
+                      block={block}
+                      index={blockIndex}
+                      dayIndex={dayIndex}
+                      removeBlock={removeBlock}
+                      removeExercise={removeExercise}
+                      updateExerciseInstructions={
+                        updateExerciseInstructions
+                      }
+                    />
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => addBlock(dayIndex)}
+                  className="mt-4 w-full bg-tertiary border border-border hover:border-primary hover:shadow-[0_0_20px_rgba(109,190,69,0.35)] py-3 rounded-[1.25rem] transition-all font-semibold"
+                >
+                  ➕ AGREGAR BLOQUE
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <button
+            onClick={addDay}
+            className="mt-6 bg-primary text-black px-6 py-3 rounded-[1.25rem] font-black hover:brightness-110 transition-all shadow-[0_0_20px_rgba(109,190,69,0.35)]"
+          >
+            ➕ AGREGAR DIA
+          </button>
+        </div>
       </div>
 
       <DragOverlay>
         {activeExercise ? (
-          <div className="bg-primary text-black px-5 py-3 rounded-[1.25rem] shadow-[0_0_20px_rgba(109,190,69,0.35)]Lg border border-white/10 font-bold scale-105">
+          <div className="bg-primary text-black px-5 py-3 rounded-[1.25rem] shadow-[0_0_20px_rgba(109,190,69,0.35)] border border-white/10 font-bold scale-105">
             {activeExercise.name}
           </div>
         ) : null}
@@ -414,12 +415,12 @@ function DroppableBlock({
       className={`border rounded-[1.25rem] p-4 transition-all duration-200 ${
         isOver
           ? "bg-primary/10 border-primary shadow-[0_0_20px_rgba(109,190,69,0.35)]"
-          : "bg-tertiary border-border"
+          : "bg-border border-border"
       }`}
     >
       <div className="flex justify-between items-center mb-3">
         <h3 className="font-bold text-lg">
-          Bloque {index + 1}
+          BLOQUE {index + 1}
         </h3>
 
         <button
@@ -432,14 +433,14 @@ function DroppableBlock({
 
       {block.exercises.length === 0 && (
         <div className="border-2 border-dashed border-border rounded-[1.25rem] p-6 text-center text-muted">
-          Arrastra ejercicios aquí
+          ARRASTRAR EJERCICIO
         </div>
       )}
 
       {block.exercises.map((ex: any, i: number) => (
         <div
           key={i}
-          className="border border-border bg-secondary rounded-[1.25rem] p-3 mb-3 space-y-3"
+          className="border border-border bg-tertiary rounded-[1.25rem] p-3 mb-3 space-y-3"
         >
           <div className="flex justify-between items-center">
             <span className="font-medium">

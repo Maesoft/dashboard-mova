@@ -50,21 +50,21 @@ const handleLogin = async () => {
   }
 };
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-900">
-      <div className="bg-gray-700 p-8 rounded-2xl shadow-lg w-100 border border-gray-800">
+    <div className="flex items-center justify-center h-screen bg-black">
+      <div className="bg-tertiary p-8 rounded-2xl shadow-lg w-100 border border-primary">
         {/* Logo / Marca */}
         <Image
           src="/logo.png"
           alt="Logo de MOVA"
-          width={500}
-          height={500}
+          width={350}
+          height={350}
           className="mx-auto p-1 mb-2"
           loading="eager"
         />
         {/* Inputs */}
         <input
           placeholder="Email"
-          className="w-full mb-3 p-3 rounded-lg bg-dark border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-primary transition"
+          className="w-full mb-3 p-3 font-monserrat rounded-lg bg-dark border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-primary transition"
           onChange={(e) => setEmail(e.target.value)}
         />
 
