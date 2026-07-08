@@ -20,6 +20,7 @@ type User = {
 
   progress?: number;
 };
+const API = process.env.NEXT_PUBLIC_API_URL;
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -40,13 +41,13 @@ export default function UsersPage() {
       }
 
       const [usersRes, routinesRes] = await Promise.all([
-        fetch("http://localhost:3000/users", {
+        fetch(`${API}/users`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }),
 
-        fetch("http://localhost:3000/routines", {
+        fetch(`${API}/routines`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -99,7 +100,7 @@ export default function UsersPage() {
 
     try {
       const res = await fetch(
-        `http://localhost:3000/users/${id}/toggle-active`,
+        `${API}/users/${id}/toggle-active`,
         {
           method: "PATCH",
 
@@ -138,7 +139,7 @@ export default function UsersPage() {
 
     try {
       const res = await fetch(
-        `http://localhost:3000/routines/${userId}/assign/${routineId}`,
+        `${API}/routines/${userId}/assign/${routineId}`,
         {
           method: "POST",
 

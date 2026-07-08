@@ -59,8 +59,8 @@ export default function DashboardLayout({
               RUTINAS
             </Link>
             <Link
-              href="/dashboard/recipes"
-              className={linkClass("/dashboard/recipes")}
+              href="/dashboard/nutrition"
+              className={linkClass("/dashboard/nutrition")}
             >
               ALIMENTACION / RECETAS
             </Link>
