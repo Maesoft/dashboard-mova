@@ -1,24 +1,13 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable jsx-a11y/alt-text */
 "use client";
 
 import { useEffect, useState } from "react";
-
-const API = process.env.NEXT_PUBLIC_API_URL;
-
-interface Nutrition {
-  id: string;
-  title: string;
-  description: string;
-  image: string;
-  published: boolean;
-  active: boolean;
-}
+import { api } from "@/lib/api";
+import type { Nutrition } from "@/types/api";
 
 export default function NutritionPage() {
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
-
   const [recipes, setRecipes] = useState<Nutrition[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,31 +18,11 @@ export default function NutritionPage() {
   const [description, setDescription] = useState("");
   const [image, setImage] = useState("");
 
-  const fetchWithAuth = async (
-    url: string,
-    options: RequestInit = {}
-  ) => {
-    const res = await fetch(url, {
-      ...options,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-        ...(options.headers || {}),
-      },
-    });
-
-    if (!res.ok) {
-      throw new Error("Error al comunicarse con el servidor");
-    }
-
-    return res.json();
-  };
-
   const loadRecipes = async () => {
     try {
       setLoading(true);
 
-      const data = await fetchWithAuth(`${API}/nutrition`);
+      const data = await api<Nutrition[]>("/nutrition");
 
       setRecipes(data);
     } catch (err) {
@@ -99,12 +68,12 @@ export default function NutritionPage() {
       };
 
       if (editing) {
-        await fetchWithAuth(`${API}/nutrition/${editing.id}`, {
+        await api(`/nutrition/${editing.id}`, {
           method: "PATCH",
           body: JSON.stringify(body),
         });
       } else {
-        await fetchWithAuth(`${API}/nutrition`, {
+        await api("/nutrition", {
           method: "POST",
           body: JSON.stringify(body),
         });
@@ -123,7 +92,7 @@ export default function NutritionPage() {
     if (!confirm("¿Publicar esta receta?")) return;
 
     try {
-      await fetchWithAuth(`${API}/nutrition/${id}/publish`, {
+      await api(`/nutrition/${id}/publish`, {
         method: "PATCH",
       });
 
@@ -138,7 +107,7 @@ export default function NutritionPage() {
     if (!confirm("¿Eliminar receta?")) return;
 
     try {
-      await fetchWithAuth(`${API}/nutrition/${id}`, {
+      await api(`/nutrition/${id}`, {
         method: "DELETE",
       });
 

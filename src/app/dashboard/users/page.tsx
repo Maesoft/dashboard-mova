@@ -1,26 +1,9 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-
-type Routine = {
-  id: number;
-  name: string;
-};
-
-type User = {
-  id: number;
-  email: string;
-  isActive: boolean;
-
-  routine?: {
-    id: number;
-    name: string;
-  };
-
-  progress?: number;
-};
-const API = process.env.NEXT_PUBLIC_API_URL;
+import { api } from "@/lib/api";
+import type { Routine, User } from "@/types/api";
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -29,48 +12,18 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [loadingId, setLoadingId] = useState<number | null>(null);
 
-  const router = useRouter();
-
   const fetchUsersAndRoutines = async () => {
     try {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        router.push("/login");
-        return;
-      }
-
-      const [usersRes, routinesRes] = await Promise.all([
-        fetch(`${API}/users`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }),
-
-        fetch(`${API}/routines`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }),
+      const [usersData, routinesData] = await Promise.all([
+        api<User[]>("/users"),
+        api<Routine[]>("/routines"),
       ]);
-
-      const usersData = await usersRes.json();
-
-      const routinesData = await routinesRes.json();
-
-      if (!usersRes.ok) {
-        throw new Error(usersData.message || "Error al obtener usuarios");
-      }
-
-      if (!routinesRes.ok) {
-        throw new Error(routinesData.message || "Error al obtener rutinas");
-      }
 
       setUsers(usersData);
 
       setRoutines(Array.isArray(routinesData) ? routinesData : []);
-    } catch (error: any) {
-      console.error("ERROR:", error.message);
+    } catch (error) {
+      console.error("ERROR:", error instanceof Error ? error.message : error);
 
       setUsers([]);
       setRoutines([]);
@@ -80,10 +33,6 @@ export default function UsersPage() {
   };
 
   const toggleActive = async (id: number) => {
-    const token = localStorage.getItem("token");
-
-    if (!token) return;
-
     setLoadingId(id);
 
     // Optimistic update
@@ -99,20 +48,7 @@ export default function UsersPage() {
     );
 
     try {
-      const res = await fetch(
-        `${API}/users/${id}/toggle-active`,
-        {
-          method: "PATCH",
-
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      if (!res.ok) {
-        throw new Error("Error al actualizar estado");
-      }
+      await api(`/users/${id}/toggle-active`, { method: "PATCH" });
     } catch (error) {
       console.error(error);
 
@@ -133,27 +69,8 @@ export default function UsersPage() {
   };
 
   const assignRoutine = async (userId: number, routineId: number) => {
-    const token = localStorage.getItem("token");
-
-    if (!token) return;
-
     try {
-      const res = await fetch(
-        `${API}/routines/${userId}/assign/${routineId}`,
-        {
-          method: "POST",
-
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Error asignando rutina");
-      }
+      await api(`/routines/${userId}/assign/${routineId}`, { method: "POST" });
 
       setUsers((prev) =>
         prev.map((user) => {
@@ -166,10 +83,10 @@ export default function UsersPage() {
           };
         }),
       );
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
 
-      alert(error.message || "Error asignando rutina");
+      alert(error instanceof Error ? error.message : "Error asignando rutina");
     }
   };
 
@@ -180,7 +97,6 @@ export default function UsersPage() {
   if (loading) {
     return <p className="text-muted">Cargando usuarios...</p>;
   }
-
   if (users.length === 0) {
     return <p className="text-muted">No hay usuarios o no tenés permisos</p>;
   }

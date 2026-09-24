@@ -7,18 +7,25 @@ import {
   useDraggable,
   useDroppable,
 } from "@dnd-kit/core";
-
-const API = process.env.NEXT_PUBLIC_API_URL;
+import type { DragEndEvent } from "@dnd-kit/core";
+import { api } from "@/lib/api";
+import type {
+  Category,
+  Exercise,
+  RoutineBlock,
+  RoutineDay,
+  RoutineExercise,
+} from "@/types/api";
 
 export default function RoutinesPage() {
-  const [categories, setCategories] = useState<any[]>([]);
-  const [exercises, setExercises] = useState<any[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
 
   const [routineName, setRoutineName] = useState("");
-  const [activeExercise, setActiveExercise] = useState<any>(null);
+  const [activeExercise, setActiveExercise] = useState<Exercise | null>(null);
 
-  const [days, setDays] = useState<any[]>([
+  const [days, setDays] = useState<RoutineDay[]>([
     {
       day: 1,
       blocks: [
@@ -30,20 +37,23 @@ export default function RoutinesPage() {
     },
   ]);
 
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
-
-  const fetchWithAuth = async (url: string) => {
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    return res.json();
-  };
-
   useEffect(() => {
-    fetchWithAuth(`${API}/categories`).then(setCategories);
-    fetchWithAuth(`${API}/exercises`).then(setExercises);
+    const loadRoutineResources = async () => {
+      try {
+        const [categoriesData, exercisesData] = await Promise.all([
+          api<Category[]>("/categories"),
+          api<Exercise[]>("/exercises"),
+        ]);
+
+        setCategories(categoriesData);
+        setExercises(exercisesData);
+      } catch (error) {
+        console.error("Error cargando recursos de rutinas:", error);
+        alert(error instanceof Error ? error.message : "Error cargando rutinas");
+      }
+    };
+
+    void loadRoutineResources();
   }, []);
 
   const filteredExercises = selectedCategory
@@ -96,12 +106,12 @@ export default function RoutinesPage() {
 
         return {
           ...day,
-          blocks: day.blocks.map((block: any) => {
+          blocks: day.blocks.map((block: RoutineBlock) => {
             if (block.id !== blockId) return block;
 
             return {
               ...block,
-              exercises: block.exercises.map((ex: any, i: number) => {
+              exercises: block.exercises.map((ex: RoutineExercise, i: number) => {
                 if (i !== exerciseIndex) return ex;
 
                 return {
@@ -127,13 +137,13 @@ export default function RoutinesPage() {
 
         return {
           ...day,
-          blocks: day.blocks.map((block: any) => {
+          blocks: day.blocks.map((block: RoutineBlock) => {
             if (block.id !== blockId) return block;
 
             return {
               ...block,
               exercises: block.exercises.filter(
-                (_: any, i: number) => i !== exerciseIndex
+                (_: RoutineExercise, i: number) => i !== exerciseIndex
               ),
             };
           }),
@@ -151,7 +161,7 @@ export default function RoutinesPage() {
 
         return {
           ...day,
-          blocks: day.blocks.filter((b: any) => b.id !== blockId),
+          blocks: day.blocks.filter((b: RoutineBlock) => b.id !== blockId),
         };
       })
     );
@@ -170,17 +180,18 @@ export default function RoutinesPage() {
     });
   };
 
-  const handleDragEnd = (event: any) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (!over) return;
 
-    const exercise = exercises.find((e) => e.id === active.id);
+    const exercise = exercises.find((e) => e.id === Number(active.id));
+    if (!exercise) return;
 
     setDays((prev) =>
       prev.map((day) => ({
         ...day,
-        blocks: day.blocks.map((block: any) => {
+        blocks: day.blocks.map((block: RoutineBlock) => {
           if (block.id === over.id) {
             return {
               ...block,
@@ -193,7 +204,6 @@ export default function RoutinesPage() {
               ],
             };
           }
-
           return block;
         }),
       }))
@@ -209,14 +219,14 @@ export default function RoutinesPage() {
     const payload = {
       name: routineName,
 
-      days: days.map((day: any, dayIndex: number) => ({
+      days: days.map((day: RoutineDay, dayIndex: number) => ({
         dayNumber: dayIndex + 1,
 
-        blocks: day.blocks.map((block: any, blockIndex: number) => ({
+        blocks: day.blocks.map((block: RoutineBlock, blockIndex: number) => ({
           name: `Bloque ${blockIndex + 1}`,
           order: blockIndex + 1,
 
-          exercises: block.exercises.map((ex: any, i: number) => ({
+          exercises: block.exercises.map((ex: RoutineExercise, i: number) => ({
             exerciseId: ex.exercise.id,
             instructions: ex.instructions,
             order: i + 1,
@@ -225,28 +235,24 @@ export default function RoutinesPage() {
       })),
     };
 
-    const res = await fetch(`${API}/routines`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    });
+    try {
+      await api("/routines", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
 
-    if (!res.ok) {
-      alert("Error guardando rutina");
-      return;
+      alert("Rutina guardada 🔥");
+    } catch (error) {
+      console.error("Error guardando rutina:", error);
+      alert(error instanceof Error ? error.message : "Error guardando rutina");
     }
-
-    alert("Rutina guardada 🔥");
   };
 
   return (
     <DndContext
       onDragStart={(event) => {
         const ex = exercises.find((e) => e.id === event.active.id);
-        setActiveExercise(ex);
+        setActiveExercise(ex ?? null);
       }}
       onDragEnd={(event) => {
         handleDragEnd(event);
@@ -335,7 +341,7 @@ export default function RoutinesPage() {
                 </div>
 
                 <div className="space-y-4">
-                  {day.blocks.map((block: any, blockIndex: number) => (
+                  {day.blocks.map((block: RoutineBlock, blockIndex: number) => (
                     <DroppableBlock
                       key={block.id}
                       block={block}
@@ -380,7 +386,7 @@ export default function RoutinesPage() {
   );
 }
 
-function DraggableExercise({ exercise }: any) {
+function DraggableExercise({ exercise }: { exercise: Exercise }) {
   const { attributes, listeners, setNodeRef } = useDraggable({
     id: exercise.id,
   });
@@ -404,7 +410,19 @@ function DroppableBlock({
   removeBlock,
   removeExercise,
   updateExerciseInstructions,
-}: any) {
+}: {
+  block: RoutineBlock;
+  index: number;
+  dayIndex: number;
+  removeBlock: (dayIndex: number, blockId: string) => void;
+  removeExercise: (dayIndex: number, blockId: string, exerciseIndex: number) => void;
+  updateExerciseInstructions: (
+    dayIndex: number,
+    blockId: string,
+    exerciseIndex: number,
+    value: string,
+  ) => void;
+}) {
   const { setNodeRef, isOver } = useDroppable({
     id: block.id,
   });
@@ -437,7 +455,7 @@ function DroppableBlock({
         </div>
       )}
 
-      {block.exercises.map((ex: any, i: number) => (
+      {block.exercises.map((ex: RoutineExercise, i: number) => (
         <div
           key={i}
           className="border border-border bg-tertiary rounded-[1.25rem] p-3 mb-3 space-y-3"

@@ -1,26 +1,11 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-
-type Category = {
-  id: number;
-  name: string;
-};
-
-type Exercise = {
-  id: number;
-  name: string;
-  description?: string;
-  videoUrl?: string;
-  category: Category;
-};
-
-const API = process.env.NEXT_PUBLIC_API_URL;
+import { api } from "@/lib/api";
+import type { Category, Exercise } from "@/types/api";
 
 export default function ExercisesPage() {
-  const router = useRouter();
-
   const [categories, setCategories] = useState<Category[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
@@ -35,58 +20,23 @@ export default function ExercisesPage() {
 
   const [error, setError] = useState<string | null>(null);
 
-  const getToken = () => {
-    if (typeof window === "undefined") return null;
-
-    return localStorage.getItem("token");
-  };
-
-  const fetchWithAuth = async (url: string) => {
-    const token = getToken();
-
-    if (!token) {
-      router.push("/login");
-      return null;
-    }
-
-    const res = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (res.status === 401) {
-      localStorage.clear();
-      router.push("/login");
-      return null;
-    }
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.message || "Error en la API");
-    }
-
-    return data;
-  };
-
   const fetchCategories = async () => {
     try {
-      const data = await fetchWithAuth(`${API}/categories`);
+      const data = await api<Category[]>("/categories");
 
       setCategories(Array.isArray(data) ? data : []);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error en la API");
     }
   };
 
   const fetchExercises = async () => {
     try {
-      const data = await fetchWithAuth(`${API}/exercises`);
+      const data = await api<Exercise[]>("/exercises");
 
       setExercises(Array.isArray(data) ? data : []);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error en la API");
     }
   };
 
@@ -101,7 +51,6 @@ export default function ExercisesPage() {
       setError("El nombre es obligatorio");
       return;
     }
-
     const exists = categories.some(
       (c) => c.name.toLowerCase() === newCategory.toLowerCase(),
     );
@@ -112,26 +61,13 @@ export default function ExercisesPage() {
     }
 
     try {
-      const token = getToken();
-
-      await fetch(`${API}/categories`, {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-
-        body: JSON.stringify({
-          name: newCategory,
-        }),
-      });
+      await api("/categories", { method: "POST", body: JSON.stringify({ name: newCategory }) });
 
       setNewCategory("");
 
       fetchCategories();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error en la API");
     }
   };
 
@@ -157,21 +93,7 @@ export default function ExercisesPage() {
     }
 
     try {
-      const token = getToken();
-
-      await fetch(`${API}/exercises`, {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-
-        body: JSON.stringify({
-          ...newExercise,
-          categoryId: selectedCategory,
-        }),
-      });
+      await api("/exercises", { method: "POST", body: JSON.stringify({ ...newExercise, categoryId: selectedCategory }) });
 
       setNewExercise({
         name: "",
@@ -180,8 +102,8 @@ export default function ExercisesPage() {
       });
 
       fetchExercises();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error en la API");
     }
   };
 
@@ -198,19 +120,11 @@ export default function ExercisesPage() {
     if (!confirm("¿Eliminar categoría?")) return;
 
     try {
-      const token = getToken();
-
-      await fetch(`${API}/categories/${id}`, {
-        method: "DELETE",
-
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await api(`/categories/${id}`, { method: "DELETE" });
 
       setCategories((prev) => prev.filter((c) => c.id !== id));
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error en la API");
     }
   };
 
@@ -219,19 +133,11 @@ export default function ExercisesPage() {
     if (!confirm("¿Eliminar ejercicio?")) return;
 
     try {
-      const token = getToken();
-
-      await fetch(`${API}/exercises/${id}`, {
-        method: "DELETE",
-
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await api(`/exercises/${id}`, { method: "DELETE" });
 
       setExercises((prev) => prev.filter((e) => e.id !== id));
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error en la API");
     }
   };
 

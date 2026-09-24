@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-
-const API = process.env.NEXT_PUBLIC_API_URL;
+import { api } from "@/lib/api";
+import type { AuthResponse } from "@/types/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,19 +19,10 @@ export default function LoginPage() {
       setLoading(true);
       setError(null);
 
-      const res = await fetch(`${API}/auth/login`, {
+      const data = await api<AuthResponse>("/auth/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({ email, password }),
       });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Error al iniciar sesión");
-      }
 
       if (data.user.role !== "trainer") {
         throw new Error("Tu cuenta no tiene permisos para acceder.");
@@ -43,6 +34,7 @@ export default function LoginPage() {
 
       // Guardar sesión
       localStorage.setItem("token", data.access_token);
+      localStorage.setItem("user", JSON.stringify(data.user));
 
       router.replace("/dashboard");
     } catch (err) {

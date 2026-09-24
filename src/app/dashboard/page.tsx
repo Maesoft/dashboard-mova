@@ -23,7 +23,7 @@ export default function DashboardPage() {
     }
 
     // 🔥 validación completa
-    if (!user || !user.isActive || user.role !== "trainer") {
+    if (!token || !user || !user.isActive || user.role !== "trainer") {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       router.push("/login");
